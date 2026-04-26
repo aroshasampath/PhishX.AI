@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text Scan - PhishX.AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="layout">
+    <aside class="sidebar">
+        <h2>PhishX.AI</h2>
+        <p>Email Threat Scanner</p>
+        <a href="/">Dashboard</a>
+        <a class="active" href="/text-scan">Text Scan</a>
+        <a href="/image-scan">Photo Scan</a>
+        <a href="/security-advice">Security Advice</a>        
+    </aside>
+
+    <main class="main">
+        <div class="page-title">
+            <h1>Email Text Scan</h1>
+            <p>Paste suspicious email content below.</p>
+        </div>
+
+        <div class="scan-box">
+            <label>Sender Domain optional</label>
+            <input id="senderDomain" type="text" placeholder="example: paypal.com">
+
+            <label>Email Text</label>
+            <textarea id="emailText" placeholder="Paste email text here..."></textarea>
+
+            <button onclick="scanText()">Scan Email</button>
+            <button class="clear-btn" onclick="clearTextScan()">Clear</button>
+        </div>
+
+        <div id="report" class="report hidden"></div>
+    </main>
+</div>
+
+<script src="/static/script.js"></script>
+<script>
+async function scanText() {
+    const emailText = document.getElementById("emailText").value;
+    const senderDomain = document.getElementById("senderDomain").value;
+
+    if (!emailText.trim()) {
+        alert("Please paste email text.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("email_text", emailText);
+    formData.append("sender_domain", senderDomain);
+
+    const res = await fetch("/scan-text", { method: "POST", body: formData });
+    const data = await res.json();
+
+    renderReport(data);
+}
+
+function clearTextScan() {
+    document.getElementById("emailText").value = "";
+    document.getElementById("senderDomain").value = "";
+
+    const report = document.getElementById("report");
+    report.innerHTML = "";
+    report.classList.add("hidden");
+}
+
+</script>
+
+</body>
+</html>
