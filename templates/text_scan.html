@@ -1,73 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Text Scan - PhishX.AI</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Email Text Scan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
 <div class="layout">
     <aside class="sidebar">
+        <div class="logo">PX</div>
         <h2>PhishX.AI</h2>
         <p>Email Threat Scanner</p>
+
         <a href="/">Dashboard</a>
-        <a class="active" href="/text-scan">Text Scan</a>
-        <a href="/image-scan">Photo Scan</a>
-        <a href="/security-advice">Security Advice</a>        
+        <a class="active" href="/text-scan">Email Text Scan</a>
+        <a href="/image-scan">Image Scan</a>
+        <a href="/report">Threat Report</a>
+        <a href="/security-advice">Security Advice</a>
     </aside>
 
     <main class="main">
-        <div class="page-title">
-            <h1>Email Text Scan</h1>
-            <p>Paste suspicious email content below.</p>
+        <h1>Scan Email Text</h1>
+        <p class="sub">Paste suspicious email body, links, headers and attachments.</p>
+
+        <form method="POST" class="form-box">
+            <label>Sender Domain</label>
+            <input type="text" name="sender" placeholder="example: paypal.com">
+
+            <label>Email Headers</label>
+            <textarea name="headers" placeholder="Paste headers here"></textarea>
+
+            <label>Attachments</label>
+            <input type="text" name="attachments" placeholder="invoice.pdf, login.exe">
+
+            <label>Email Content</label>
+            <textarea name="email_text" required placeholder="Paste suspicious email content here"></textarea>
+
+            <button type="submit">Scan Email Text</button>
+        </form>
+
+        {% if result %}
+        <div class="result">
+            <h2>Scan Result</h2>
+
+            <div class="score {{ result.risk|lower }}">
+                {{ result.risk }} Risk — {{ result.score }}/100
+            </div>
+
+            <h3>Reasons</h3>
+            <ul>
+                {% for reason in result.reasons %}
+                <li>{{ reason }}</li>
+                {% endfor %}
+            </ul>
+
+            <h3>URLs Found</h3>
+            {% if result.urls %}
+            <ul>
+                {% for url in result.urls %}
+                <li>{{ url }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No URLs found.</p>
+            {% endif %}
         </div>
-
-        <div class="scan-box">
-            <label>Sender Domain optional</label>
-            <input id="senderDomain" type="text" placeholder="example: paypal.com">
-
-            <label>Email Text</label>
-            <textarea id="emailText" placeholder="Paste email text here..."></textarea>
-
-            <button onclick="scanText()">Scan Email</button>
-            <button class="clear-btn" onclick="clearTextScan()">Clear</button>
-        </div>
-
-        <div id="report" class="report hidden"></div>
+        {% endif %}
     </main>
 </div>
-
-<script src="/static/script.js"></script>
-<script>
-async function scanText() {
-    const emailText = document.getElementById("emailText").value;
-    const senderDomain = document.getElementById("senderDomain").value;
-
-    if (!emailText.trim()) {
-        alert("Please paste email text.");
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append("email_text", emailText);
-    formData.append("sender_domain", senderDomain);
-
-    const res = await fetch("/scan-text", { method: "POST", body: formData });
-    const data = await res.json();
-
-    renderReport(data);
-}
-
-function clearTextScan() {
-    document.getElementById("emailText").value = "";
-    document.getElementById("senderDomain").value = "";
-
-    const report = document.getElementById("report");
-    report.innerHTML = "";
-    report.classList.add("hidden");
-}
-
-</script>
 
 </body>
 </html>

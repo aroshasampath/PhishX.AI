@@ -1,31 +1,44 @@
 from PIL import Image
 import pytesseract
-import cv2
-import numpy as np
 
-def preprocess_image(image_path):
-    image = cv2.imread(image_path)
+from scanner.pro_scanner import analyze_email
 
-    # grayscale
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def analyze_image_basic(image_path):
+    reasons = []
+    extracted_text = ""
 
-    # noise removal
-    gray = cv2.medianBlur(gray, 3)
-
-    # threshold
-    _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
-
-    return thresh
-
-def extract_text_from_image(image_path):
     try:
-        processed = preprocess_image(image_path)
-
-        text = pytesseract.image_to_string(
-            processed,
-            config='--oem 3 --psm 6'
-        )
-
-        return text
+        image = Image.open(image_path)
+        extracted_text = pytesseract.image_to_string(image)
     except Exception as e:
-        return f"OCR_ERROR: {str(e)}"
+        return {
+            "risk": "Medium",
+            "score": 45,
+            "reasons": [
+                "Image uploaded successfully",
+                "OCR scan failed or Tesseract is not installed",
+                "Install Tesseract OCR to enable screenshot text scanning"
+            ],
+            "urls": [],
+            "total_urls": 0,
+            "ocr_text": ""
+        }
+
+    if not extracted_text.strip():
+        return {
+            "risk": "Low",
+            "score": 15,
+            "reasons": [
+                "Image uploaded successfully",
+                "No readable text detected in screenshot"
+            ],
+            "urls": [],
+            "total_urls": 0,
+            "ocr_text": ""
+        }
+
+    result = analyze_email(text=extracted_text)
+    result["ocr_text"] = extracted_text
+    result["reasons"].insert(0, "OCR extracted text from uploaded image")
+
+    return result

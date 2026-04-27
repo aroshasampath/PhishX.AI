@@ -1,36 +1,107 @@
-def scan_text(email_text):
-    text = email_text.lower()
 
-    suspicious_phrases = [
-        "urgent", "verify your account", "account suspended",
-        "account has been suspended", "click here", "login now",
-        "confirm immediately", "security alert", "payment failed",
-        "limited time", "your account has been locked",
-        "unusual activity", "act now", "reset your password",
-        "update your account", "verify immediately"
-    ]
+import re
+import difflib
 
-    sensitive_words = [
-        "password", "otp", "one time password", "pin",
-        "credit card", "debit card", "card number",
-        "cvv", "cvc", "bank account", "login details",
-        "login credentials"
-    ]
+SUSPICIOUS_KEYWORDS = [
+    "verify your account",
+    "account suspended",
+    "urgent action",
+    "login immediately",
+    "password expired",
+    "confirm your identity",
+    "unauthorized login",
+    "payment failed",
+    "security alert",
+    "limited time",
+    "click here",
+    "reset your password",
+    "bank account",
+    "otp",
+    "pin",
+    "credit card",
+    "debit card",
+    "cvv",
+    "invoice attached",
+    "gift card",
+    "crypto wallet",
+    "account is at risk",
+    "terminate your account",
+    "closure of your account",
+    "office 365",
+    "helpdesk",
+]
 
-    found_suspicious = [w for w in suspicious_phrases if w in text]
-    found_sensitive = [w for w in sensitive_words if w in text]
+OCR_FUZZY_WORDS = [
+    "verify",
+    "account",
+    "terminate",
+    "closure",
+    "password",
+    "urgent",
+    "risk",
+    "helpdesk",
+    "office",
+    "administrator",
+    "failure",
+    "login",
+    "security",
+]
 
-    # 🔥 EXTRA RULES
-    if "click" in text and "link" in text:
-        found_suspicious.append("click link pattern")
+def fuzzy_contains(text, target, threshold=0.72):
+    words = re.findall(r"[a-zA-Z0-9]+", text.lower())
 
-    if "verify" in text:
-        found_suspicious.append("verification request")
+    for word in words:
+        ratio = difflib.SequenceMatcher(None, word, target).ratio()
+        if ratio >= threshold:
+            return True
 
-    if "login" in text:
-        found_suspicious.append("login request")
+    return False
 
-    return {
-        "suspicious_words_found": found_suspicious,
-        "sensitive_requests_found": found_sensitive
-    }
+
+def scan_text(text):
+    reasons = []
+    score = 0
+
+    if not text:
+        return score, reasons
+
+    lower_text = text.lower()
+
+    for word in SUSPICIOUS_KEYWORDS:
+        if word in lower_text:
+            score += 10
+            reasons.append(f"Suspicious phrase detected: '{word}'")
+
+    fuzzy_hits = []
+
+    for word in OCR_FUZZY_WORDS:
+        if fuzzy_contains(lower_text, word):
+            fuzzy_hits.append(word)
+
+    if len(fuzzy_hits) >= 3:
+        score += 30
+        reasons.append(
+            "OCR/fuzzy phishing words detected: " + ", ".join(fuzzy_hits)
+        )
+
+    if re.search(r"\b(password|otp|pin|cvv|card number|account)\b", lower_text):
+        score += 20
+        reasons.append("Email requests sensitive or account-related information")
+
+    if re.search(r"\b(urgent|immediately|within 24 hours|final warning|risk|closure|terminate)\b", lower_text):
+        score += 20
+        reasons.append("Urgency, risk, termination or pressure tactic detected")
+
+    if "http" in lower_text or "www" in lower_text or "url" in lower_text:
+        score += 15
+        reasons.append("Email asks user to visit or copy a URL")
+
+    if "helpdesk" in lower_text or "administrator" in lower_text:
+        score += 10
+        reasons.append("Helpdesk/admin impersonation detected")
+
+    if "office" in lower_text or "365" in lower_text or "385" in lower_text:
+        score += 10
+        reasons.append("Office 365 style account phishing indicator detected")
+
+    return score, reasons

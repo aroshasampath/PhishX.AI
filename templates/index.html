@@ -1,302 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>PhishX.AI - Phishing Email Detector</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>AI Threat Report</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<div class="app">
-
+<div class="layout">
     <aside class="sidebar">
-        <div class="logo">
-            <div class="logo-icon">PX</div>
-            <div>
-                <h2>PhishX.AI</h2>
-                <p>Email Threat Scanner</p>
-            </div>
-        </div>
+        <div class="logo">PX</div>
+        <h2>PhishX.AI</h2>
+        <p>AI Email Threat Scanner</p>
 
-        <nav>
-            <a class="active">Dashboard</a>
-            <a>Email Text Scan</a>
-            <a>EML Upload</a>
-            <a>Threat Report</a>
-        </nav>
+        <a href="/">Dashboard</a>
+        <a href="/text-scan">Email Text Scan</a>
+        <a href="/image-scan">Image Scan</a>
 
-        <div class="sidebar-footer">
-            <p>AI-assisted phishing risk analysis</p>
-        </div>
+        {% if page == "report" %}
+        <a class="active" href="/report">Threat Report</a>
+        {% else %}
+        <a href="/report">Threat Report</a>
+        {% endif %}
+
+        {% if page == "eml" %}
+        <a class="active" href="/eml-scan">EML AI Scan</a>
+        {% else %}
+        <a href="/eml-scan">EML AI Scan</a>
+        {% endif %}
+
+        <a href="/security-advice">Security Advice</a>
     </aside>
 
     <main class="main">
 
-        <header class="topbar">
-            <div>
-                <h1>Phishing Email Detector</h1>
-                <p>Analyze emails, URLs, headers, attachments and phishing indicators.</p>
-            </div>
-            <div class="status-pill">System Online</div>
-        </header>
+        {% if page == "eml" %}
+        <h1>EML AI Scan</h1>
+        <p class="sub">Upload a complete .eml email file and scan it with the AI phishing engine.</p>
 
-        <section class="stats">
-            <div class="stat-card">
-                <span>Email Text</span>
-                <h3>Scan</h3>
-                <p>Paste suspicious email content</p>
-            </div>
+        <div class="form-box">
+            <h2>Upload .eml File</h2>
 
-            <div class="stat-card">
-                <span>.EML File</span>
-                <h3>Upload</h3>
-                <p>Analyze complete email files</p>
-            </div>
+            <form method="POST" action="/eml-scan" enctype="multipart/form-data">
+                <label>Select .eml File</label>
+                <input type="file" name="eml_file" required>
+                <button type="submit">Upload & AI Scan</button>
+            </form>
+        </div>
 
-            <div class="stat-card">
-                <span>Risk Engine</span>
-                <h3>0 - 100</h3>
-                <p>Low / Medium / High scoring</p>
-            </div>
-        </section>
+        {% if error %}
+        <div class="result">
+            <h3 style="color:red;">{{ error }}</h3>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <h1>AI Threat Report</h1>
+        <p class="sub">Risk scoring levels powered by rule-based AI detection.</p>
 
         <section class="grid">
-
-            <div class="panel">
-                <div class="panel-header">
-                    <h2>Scan Email Text</h2>
-                    <p>Paste email body or HTML content below.</p>
-                </div>
-
-                <label>Sender Domain optional</label>
-                <input type="text" id="senderDomain" placeholder="example: paypal.com">
-
-                <label>Email Content</label>
-                <textarea id="emailText" placeholder="Paste suspicious email content here..."></textarea>
-
-                <button onclick="scanText()">Scan Email Text</button>
+            <div class="card low-card">
+                <h3>Low Risk</h3>
+                <p>0 - 30</p>
             </div>
 
-            <div class="panel">
-                <div class="panel-header">
-                    <h2>Upload .eml File</h2>
-                    <p>Upload raw email file for full header and attachment analysis.</p>
-                </div>
-
-                <div class="upload-box">
-                    <input type="file" id="emlFile" accept=".eml">
-                    <p>Supported file: .eml</p>
-                </div>
-
-                <button onclick="scanEml()">Scan EML File</button>
-
-                <div class="tips">
-                    <h4>Detected Features</h4>
-                    <ul>
-                        <li>SPF / DKIM / DMARC</li>
-                        <li>Suspicious URLs</li>
-                        <li>Fake visible links</li>
-                        <li>Attachments</li>
-                        <li>Domain reputation checks</li>
-                    </ul>
-                </div>
+            <div class="card medium-card">
+                <h3>Medium Risk</h3>
+                <p>31 - 70</p>
             </div>
 
+            <div class="card high-card">
+                <h3>High Risk</h3>
+                <p>71 - 100</p>
+            </div>
         </section>
+        {% endif %}
 
-        <section id="result" class="result hidden">
+        {% if result %}
+        <div class="result">
+            <h2>Scan Result</h2>
 
-            <div class="result-header">
-                <div>
-                    <h2>Threat Analysis Report</h2>
-                    <p>Generated by PhishX.AI scanner</p>
-                </div>
-                <span id="riskBadge" class="risk-badge">Unknown</span>
+            {% if filename %}
+            <p><b>File:</b> {{ filename }}</p>
+            {% endif %}
+
+            <div class="score {{ result.risk|lower }}">
+                {{ result.risk }} Risk — {{ result.score }}/100
             </div>
 
-            <div class="score-area">
-                <div class="score-circle">
-                    <span id="riskScoreNumber">0</span>
-                    <small>/100</small>
-                </div>
+            {% if result.ai_score is defined %}
+            <p><b>AI Score:</b> {{ result.ai_score }}</p>
+            {% endif %}
 
-                <div>
-                    <h3 id="verdict">Unknown</h3>
-                    <p id="riskLevel">Risk Level: Unknown</p>
-                    <p class="muted">Higher score means higher phishing probability.</p>
-                </div>
-            </div>
+            <h3>Reasons</h3>
+            <ul>
+                {% for reason in result.reasons %}
+                <li>{{ reason }}</li>
+                {% endfor %}
+            </ul>
 
-            <div class="report-grid">
-
-                <div class="report-card">
-                    <h3>Reasons</h3>
-                    <ul id="reasons"></ul>
-                </div>
-
-                <div class="report-card">
-                    <h3>Email Info</h3>
-                    <pre id="emailInfo"></pre>
-                </div>
-
-                <div class="report-card">
-                    <h3>URLs Found</h3>
-                    <pre id="urlsFound"></pre>
-                </div>
-
-                <div class="report-card">
-                    <h3>Suspicious URLs</h3>
-                    <pre id="suspiciousUrls"></pre>
-                </div>
-
-                <div class="report-card">
-                    <h3>Attachments</h3>
-                    <pre id="attachments"></pre>
-                </div>
-
-                <div class="report-card">
-                    <h3>Email Authentication</h3>
-                    <pre id="auth"></pre>
-                </div>
-
-                <div class="report-card wide">
-                    <h3>Domain Check</h3>
-                    <pre id="domainCheck"></pre>
-                </div>
-
-            </div>
-
-        </section>
+            <h3>URLs Found</h3>
+            {% if result.urls %}
+            <ul>
+                {% for url in result.urls %}
+                <li>{{ url }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No URLs found.</p>
+            {% endif %}
+        </div>
+        {% endif %}
 
     </main>
 </div>
-
-<script>
-async function scanText() {
-    const emailText = document.getElementById("emailText").value;
-    const senderDomain = document.getElementById("senderDomain").value;
-
-    if (!emailText.trim()) {
-        alert("Please paste email text first.");
-        return;
-    }
-
-    setLoading(true);
-
-    const formData = new FormData();
-    formData.append("email_text", emailText);
-    formData.append("sender_domain", senderDomain);
-
-    try {
-        const response = await fetch("/scan-text", {
-            method: "POST",
-            body: formData
-        });
-
-        const data = await response.json();
-        showResult(data);
-    } catch (error) {
-        alert("Scan failed. Check terminal for backend error.");
-    }
-
-    setLoading(false);
-}
-
-async function scanEml() {
-    const fileInput = document.getElementById("emlFile");
-
-    if (!fileInput.files.length) {
-        alert("Please choose a .eml file first.");
-        return;
-    }
-
-    setLoading(true);
-
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-
-    try {
-        const response = await fetch("/scan-eml", {
-            method: "POST",
-            body: formData
-        });
-
-        const data = await response.json();
-        showResult(data);
-    } catch (error) {
-        alert("EML scan failed. Check terminal for backend error.");
-    }
-
-    setLoading(false);
-}
-
-function setLoading(isLoading) {
-    const buttons = document.querySelectorAll("button");
-    buttons.forEach(btn => {
-        btn.disabled = isLoading;
-        btn.innerText = isLoading ? "Scanning..." : btn.getAttribute("data-original") || btn.innerText;
-        if (!btn.getAttribute("data-original")) {
-            btn.setAttribute("data-original", btn.innerText);
-        }
-    });
-}
-
-function showResult(data) {
-    document.getElementById("result").classList.remove("hidden");
-
-    const score = data.risk_score || 0;
-    const level = data.risk_level || "Unknown";
-
-    document.getElementById("verdict").innerText = data.verdict || "Unknown";
-    document.getElementById("riskLevel").innerText = "Risk Level: " + level;
-    document.getElementById("riskScoreNumber").innerText = score;
-
-    const badge = document.getElementById("riskBadge");
-    badge.innerText = level + " Risk";
-    badge.className = "risk-badge " + level.toLowerCase();
-
-    const reasonsList = document.getElementById("reasons");
-    reasonsList.innerHTML = "";
-
-    if (data.reasons && data.reasons.length > 0) {
-        data.reasons.forEach(reason => {
-            const li = document.createElement("li");
-            li.innerText = reason;
-            reasonsList.appendChild(li);
-        });
-    } else {
-        const li = document.createElement("li");
-        li.innerText = "No suspicious reasons found.";
-        reasonsList.appendChild(li);
-    }
-
-    document.getElementById("emailInfo").innerText =
-        JSON.stringify(data.email_info || {}, null, 2);
-
-    document.getElementById("urlsFound").innerText =
-        JSON.stringify(data.report?.urls_found || [], null, 2);
-
-    document.getElementById("suspiciousUrls").innerText =
-        JSON.stringify(data.report?.suspicious_urls || [], null, 2);
-
-    document.getElementById("attachments").innerText =
-        JSON.stringify({
-            attachments: data.report?.attachments || [],
-            suspicious_attachments: data.report?.suspicious_attachments || []
-        }, null, 2);
-
-    document.getElementById("auth").innerText =
-        JSON.stringify(data.report?.email_authentication || {}, null, 2);
-
-    document.getElementById("domainCheck").innerText =
-        JSON.stringify(data.report?.domain_check || {}, null, 2);
-
-    window.scrollTo({
-        top: document.getElementById("result").offsetTop,
-        behavior: "smooth"
-    });
-}
-</script>
 
 </body>
 </html>

@@ -1,54 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Security Advice - PhishX.AI</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Security Advice</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
 <div class="layout">
     <aside class="sidebar">
+        <div class="logo">PX</div>
         <h2>PhishX.AI</h2>
         <p>Email Threat Scanner</p>
+
         <a href="/">Dashboard</a>
-        <a href="/text-scan">Text Scan</a>
-        <a href="/image-scan">Photo Scan</a>
+        <a href="/text-scan">Email Text Scan</a>
+        <a href="/image-scan">Image Scan</a>
+        <a href="/report">Threat Report</a>
         <a class="active" href="/security-advice">Security Advice</a>
     </aside>
 
     <main class="main">
-        <div class="page-title">
-            <h1>Security Advice</h1>
-            <p>Simple tips to stay safe from phishing emails.</p>
-        </div>
+        <h1>Security Advice</h1>
+        <p class="sub">How to stay safe from phishing attacks.</p>
 
-        <div class="cards">
-            <div class="card">
-                <h3>Do not share OTPs</h3>
-                <p>Real companies will never ask for your OTP, PIN, password, or card CVV by email.</p>
-            </div>
-
-            <div class="card">
-                <h3>Check links carefully</h3>
-                <p>Before clicking, check whether the link domain matches the real company website.</p>
-            </div>
-
-            <div class="card">
-                <h3>Be careful with urgency</h3>
-                <p>Words like “urgent”, “verify now”, or “account suspended” are common phishing tricks.</p>
-            </div>
-        </div>
-
-        <div class="feature-box">
-            <h2>Before trusting an email</h2>
-            <div class="features">
-                <span>Check sender address</span>
-                <span>Check URL domain</span>
-                <span>Never share OTP</span>
-                <span>Do not open unknown attachments</span>
-                <span>Use official website</span>
-                <span>Report suspicious emails</span>
-            </div>
+        <div class="card">
+            <ul>
+                <li>Do not click suspicious links.</li>
+                <li>Check sender domain carefully.</li>
+                <li>Do not enter passwords from email links.</li>
+                <li>Be careful with urgent payment or account warning emails.</li>
+                <li>Check attachments before downloading.</li>
+                <li>Use two-factor authentication.</li>
+            </ul>
         </div>
     </main>
 </div>

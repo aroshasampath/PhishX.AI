@@ -1,70 +1,56 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Photo Scan - PhishX.AI</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Image Scan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
 <div class="layout">
     <aside class="sidebar">
+        <div class="logo">PX</div>
         <h2>PhishX.AI</h2>
         <p>Email Threat Scanner</p>
+
         <a href="/">Dashboard</a>
-        <a href="/text-scan">Text Scan</a>
-        <a class="active" href="/image-scan">Photo Scan</a>
+        <a href="/text-scan">Email Text Scan</a>
+        <a class="active" href="/image-scan">Image Scan</a>
+        <a href="/report">Threat Report</a>
         <a href="/security-advice">Security Advice</a>
     </aside>
 
     <main class="main">
-        <div class="page-title">
-            <h1>Email Screenshot / Photo Scan</h1>
-            <p>Upload an email screenshot. The system extracts text and scans it.</p>
+        <h1>Scan Email Screenshot</h1>
+        <p class="sub">Upload a suspicious email screenshot.</p>
+
+        <form method="POST" enctype="multipart/form-data" class="form-box">
+            <label>Select Image</label>
+            <input type="file" name="image" accept="image/*" required>
+
+            <button type="submit">Upload & Scan</button>
+        </form>
+
+        {% if result %}
+        <div class="result">
+            <h2>Image Scan Result</h2>
+            <p><b>File:</b> {{ filename }}</p>
+
+            <div class="score {{ result.risk|lower }}">
+                {{ result.risk }} Risk — {{ result.score }}/100
+            </div>
+     
+            <h3>OCR Extracted Text</h3>
+            <textarea readonly>{{ result.ocr_text }}</textarea>
+
+            <ul>
+                {% for reason in result.reasons %}
+                <li>{{ reason }}</li>
+                {% endfor %}
+            </ul>
         </div>
-
-        <div class="scan-box">
-            <label>Sender Domain optional</label>
-            <input id="senderDomain" type="text" placeholder="example: paypal.com">
-
-            <label>Upload Image</label>
-            <input id="imageFile" type="file" accept="image/*">
-
-            <button onclick="scanImage()">Scan Photo</button>
-        </div>
-
-        <div id="ocrText" class="ocr-box hidden"></div>
-        <div id="report" class="report hidden"></div>
+        {% endif %}
     </main>
 </div>
-
-<script src="/static/script.js"></script>
-<script>
-async function scanImage() {
-    const file = document.getElementById("imageFile").files[0];
-    const senderDomain = document.getElementById("senderDomain").value;
-
-    if (!file) {
-        alert("Please upload an image.");
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("sender_domain", senderDomain);
-
-    const res = await fetch("/scan-image", { method: "POST", body: formData });
-    const data = await res.json();
-
-    const ocrBox = document.getElementById("ocrText");
-    ocrBox.classList.remove("hidden");
-    ocrBox.innerHTML = `
-        <h3>Extracted Text</h3>
-        <pre>${data.extracted_text || "No text extracted"}</pre>
-    `;
-
-    renderReport(data);
-}
-</script>
 
 </body>
 </html>

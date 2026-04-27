@@ -1,65 +1,48 @@
-import dns.resolver
-import whois
-from datetime import datetime
+import socket
+import difflib
 
-def dns_resolves(domain):
+POPULAR_BRANDS = [
+    "paypal.com",
+    "google.com",
+    "microsoft.com",
+    "apple.com",
+    "facebook.com",
+    "amazon.com",
+    "netflix.com",
+    "github.com",
+    "linkedin.com",
+    "bankofamerica.com",
+]
+
+def domain_exists(domain):
     try:
-        dns.resolver.resolve(domain, "A")
+        socket.gethostbyname(domain)
         return True
-    except:
+    except Exception:
         return False
 
-def has_mx_record(domain):
-    try:
-        dns.resolver.resolve(domain, "MX")
-        return True
-    except:
-        return False
-
-def get_domain_age_days(domain):
-    try:
-        data = whois.whois(domain)
-        creation_date = data.creation_date
-
-        if isinstance(creation_date, list):
-            creation_date = creation_date[0]
-
-        if not creation_date:
-            return None
-
-        return (datetime.now() - creation_date).days
-    except:
-        return None
-
-def scan_domain(domain):
+def scan_domain(sender_domain):
     reasons = []
+    score = 0
 
-    if not domain:
-        return {
-            "domain": domain,
-            "dns_resolves": False,
-            "has_mx": False,
-            "domain_age_days": None,
-            "domain_reasons": ["No sender domain found"]
-        }
+    if not sender_domain:
+        return score, reasons
 
-    dns_ok = dns_resolves(domain)
-    mx_ok = has_mx_record(domain)
-    age_days = get_domain_age_days(domain)
+    domain = sender_domain.lower().replace("www.", "")
 
-    if not dns_ok:
-        reasons.append("DNS resolve failed")
+    if not domain_exists(domain):
+        score += 15
+        reasons.append(f"Sender domain does not resolve: {domain}")
 
-    if not mx_ok:
-        reasons.append("MX record not found")
+    for brand in POPULAR_BRANDS:
+        ratio = difflib.SequenceMatcher(None, domain, brand).ratio()
 
-    if age_days is not None and age_days < 30:
-        reasons.append("Domain is very new")
+        if ratio > 0.72 and domain != brand:
+            score += 20
+            reasons.append(f"Possible brand spoofing: {domain} looks like {brand}")
 
-    return {
-        "domain": domain,
-        "dns_resolves": dns_ok,
-        "has_mx": mx_ok,
-        "domain_age_days": age_days,
-        "domain_reasons": reasons
-    }
+    if domain.startswith("xn--"):
+        score += 25
+        reasons.append("Punycode domain detected, possible Unicode spoofing")
+
+    return score, reasons

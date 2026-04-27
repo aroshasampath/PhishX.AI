@@ -1,12 +1,13 @@
 from email import policy
 from email.parser import BytesParser
 
-def parse_eml(content):
-    msg = BytesParser(policy=policy.default).parsebytes(content)
+def parse_eml_file(path):
+    with open(path, "rb") as f:
+        msg = BytesParser(policy=policy.default).parse(f)
 
-    subject = msg.get("Subject", "")
-    sender = msg.get("From", "")
-    reply_to = msg.get("Reply-To", "")
+    subject = msg.get("subject", "")
+    sender = msg.get("from", "")
+    headers = str(msg)
 
     body = ""
 
@@ -14,22 +15,27 @@ def parse_eml(content):
         for part in msg.walk():
             content_type = part.get_content_type()
 
-            if content_type in ["text/plain", "text/html"]:
+            if content_type == "text/plain":
                 try:
-                    body += "\n" + part.get_content()
-                except:
+                    body += part.get_content()
+                except Exception:
                     pass
     else:
         try:
             body = msg.get_content()
-        except:
+        except Exception:
             body = ""
 
+    attachments = []
+    for part in msg.iter_attachments():
+        filename = part.get_filename()
+        if filename:
+            attachments.append(filename)
+
     return {
-        "msg": msg,
         "subject": subject,
         "sender": sender,
-        "reply_to": reply_to,
+        "headers": headers,
         "body": body,
-        "full_text": subject + "\n" + sender + "\n" + reply_to + "\n" + body
+        "attachments": attachments
     }

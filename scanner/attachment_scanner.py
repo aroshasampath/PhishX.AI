@@ -1,34 +1,33 @@
-SUSPICIOUS_EXTENSIONS = [
-    ".exe", ".scr", ".bat", ".cmd", ".vbs", ".js",
-    ".jar", ".iso", ".html", ".htm", ".docm",
-    ".xlsm", ".zip", ".rar", ".7z"
+DANGEROUS_EXTENSIONS = [
+    ".exe", ".scr", ".bat", ".cmd", ".js", ".vbs",
+    ".jar", ".msi", ".ps1", ".apk", ".com"
 ]
 
-def scan_attachments(msg):
-    attachments = []
-    suspicious = []
+DOCUMENT_EXTENSIONS = [
+    ".docm", ".xlsm", ".pptm"
+]
 
-    for part in msg.walk():
-        filename = part.get_filename()
+def scan_attachments(attachments):
+    reasons = []
+    score = 0
 
-        if filename:
-            lower = filename.lower()
-            attachments.append(filename)
+    if not attachments:
+        return score, reasons
 
-            for ext in SUSPICIOUS_EXTENSIONS:
-                if lower.endswith(ext):
-                    suspicious.append({
-                        "filename": filename,
-                        "reason": f"Suspicious attachment extension: {ext}"
-                    })
+    for file in attachments:
+        filename = file.lower()
 
-            if lower.count(".") >= 2:
-                suspicious.append({
-                    "filename": filename,
-                    "reason": "Double-extension attachment detected"
-                })
+        if any(filename.endswith(ext) for ext in DANGEROUS_EXTENSIONS):
+            score += 25
+            reasons.append(f"Dangerous attachment extension detected: {file}")
 
-    return {
-        "attachments": attachments,
-        "suspicious_attachments": suspicious
-    }
+        if any(filename.endswith(ext) for ext in DOCUMENT_EXTENSIONS):
+            score += 15
+            reasons.append(f"Macro-enabled document detected: {file}")
+
+        parts = filename.split(".")
+        if len(parts) >= 3:
+            score += 15
+            reasons.append(f"Double extension attachment detected: {file}")
+
+    return score, reasons
