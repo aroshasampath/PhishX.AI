@@ -1,125 +1,168 @@
-# 🛡️ PhishX.AI - Phishing Email Detection Platform
 
-A user-friendly web-based platform to detect phishing emails using text, URLs, domains, headers, and screenshots.
+# 🛡️ PhishX.AI – AI-Powered Phishing Detection Platform
+
+PhishX.AI is a cybersecurity-focused phishing detection system that analyzes emails, URLs, domains, attachments, and screenshots using rule-based intelligence + AI-style heuristics.
 
 ---
 
 ## 🚀 Features
 
-* 📄 **Email Text Scan**
-  Analyze suspicious email content and get a risk report instantly.
+### 🧠 Email Analysis Engine
+- Phishing keyword & phrase detection  
+- Sensitive data request detection (password, OTP, card info)  
+- Urgency / pressure tactic detection  
+- OCR-aware fuzzy text detection (handles misspellings)
 
-* 🌐 **URL & Domain Detection**
-  Identify malicious or suspicious links inside emails.
+### 🌐 URL Intelligence
+- URL extraction  
+- URL shortener detection  
+- Suspicious TLD detection  
+- Lookalike domain detection (e.g. micr0soft)  
+- Sender vs link domain mismatch  
 
-* 🖼️ **Image Scan (Screenshot Analysis)**
-  Upload screenshots of emails and detect phishing attempts.
+### 🌍 Domain Intelligence
+- DNS resolution check  
+- Brand spoofing detection  
+- Punycode / Unicode attack detection  
 
-* 📊 **Simple Risk Report**
-  Easy-to-understand results for non-technical users.
+### 📧 Email Header Analysis
+- SPF / DKIM / DMARC fail detection  
+- Mail relay chain analysis  
+- Reply-To vs From mismatch detection  
 
-* 🔐 **Security Advice Section**
-  Get actionable tips to stay safe from phishing attacks.
+### 📎 Attachment Scanner
+- Dangerous file detection (.exe, .bat, etc.)  
+- Macro-enabled files (.docm, .xlsm)  
+- Double extension attacks  
+
+### 🤖 AI Detection Layer
+- Pattern-based phishing classifier  
+- Fuzzy OCR-aware detection  
+- Combined AI + rule-based scoring  
+
+### 🖼 Image Phishing Detection
+- Screenshot upload  
+- OCR text extraction (Tesseract)  
+- Image → text → phishing analysis  
+
+### 📂 EML File Analysis
+- Full email parsing  
+- Attachments + headers + body analysis  
+- AI-based phishing detection  
+
+### 📊 Risk Engine
+- Score: 0–100  
+- Classification:
+  - Low  
+  - Medium  
+  - High  
+- Detailed reason-based reporting  
+
+### 🌐 API Support
+POST /api/scan
+
+---
+
+## 🖥️ Dashboard Pages
+
+- Dashboard  
+- Email Text Scan  
+- Image Scan (OCR)  
+- Threat Report  
+- EML AI Scan  
+- Security Advice  
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Backend:** Python (Flask/Django)
-* **Frontend:** HTML, CSS
-* **Other:** Machine Learning / Rule-based detection
-
----
-
-## 📁 Project Structure
-
-```
-phishingmail/
-│── app.py
-│── scanner/
-│── templates/
-│── static/
-│── uploads/
-│── reports/
-│── __pycache__/
-│── venv/
-```
+- Backend: Flask (Python)  
+- AI Logic: Rule-based + heuristic scoring  
+- OCR: Tesseract  
+- Frontend: HTML + CSS  
 
 ---
 
 ## ⚙️ Installation
 
-### 1. Clone the repository
-
 ```bash
 git clone https://github.com/aroshasampath/PhishX.AI.git
-cd phishingmail
+cd PhishX.AI
 ```
 
-### 2. Create virtual environment
-
-```bash
-python -m venv venv
-source venv/bin/activate   # Linux
-venv\Scripts\activate      # Windows
-```
-
-### 3. Install dependencies
+### Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Run the application
+### Install Tesseract (Linux)
+
+```bash
+sudo apt install tesseract-ocr
+```
+
+---
+
+## ▶️ Run the Application
 
 ```bash
 python app.py
 ```
 
----
-
-## 🌐 Usage
-
-1. Open browser and go to:
+Open in browser:
 
 ```
-http://127.0.0.1:5000/
+http://127.0.0.1:5000
 ```
 
-2. Choose:
+---
 
-* Text Scan
-* Image Scan
+## 🧪 Sample Test
 
-3. Upload or paste suspicious content
+```
+URGENT! Your account has been suspended.
 
-4. View the generated risk report
+Verify your account immediately:
+http://paypal-security-login.xyz
+
+Enter your password and OTP.
+```
+
+Expected Result: High Risk
 
 ---
 
-## ⚠️ Security Notes
+## 📡 API Usage
 
-* Do not upload sensitive personal data
-* This tool provides **assistance**, not guaranteed detection
-* Always verify emails manually when in doubt
+```bash
+curl -X POST http://127.0.0.1:5000/api/scan \
+-H "Content-Type: application/json" \
+-d '{
+  "text": "Your account is at risk. Verify now.",
+  "sender": "paypal.com"
+}'
+```
 
 ---
 
-## 📌 Future Improvements
+## 🔮 Future Improvements
 
-* AI-based phishing detection
-* Real-time URL reputation API integration
-* Email header deep analysis
-* User authentication system
+- Machine Learning model  
+- VirusTotal integration  
+- User login system  
+- Scan history  
+- PDF report export  
+- Cloud deployment  
+
+---
+
+## ⚠️ Disclaimer
+
+This tool is for educational and defensive cybersecurity purposes only.
 
 ---
 
 ## 👨‍💻 Author
 
-**Arosha Sampath**
-
----
-
-## ⭐ Support
-
-If you like this project, give it a ⭐ on GitHub!
+Arosha 🚀
