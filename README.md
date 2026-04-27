@@ -165,4 +165,4 @@ This tool is for educational and defensive cybersecurity purposes only.
 
 ## 👨‍💻 Author
 
-Arosha 🚀
+Arosha Sampath Premathilaka
